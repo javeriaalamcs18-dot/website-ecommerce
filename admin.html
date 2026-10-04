@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard – Next Gen Smart Skills | IT HUB Mardan</title>
+  <link rel="icon" href="assets/it-hub-logo.png" type="image/png">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body { background-color: var(--bg-soft); }
+    .admin-top-bar {
+      background: var(--primary-dark);
+      color: #fff;
+      padding: 16px 0;
+      border-bottom: 2px solid var(--support-lime);
+    }
+    .stats-card-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 16px;
+      margin: 30px 0;
+    }
+    .stat-box {
+      background: #fff;
+      border-radius: 18px;
+      padding: 20px;
+      border: 1px solid var(--border-light);
+      box-shadow: var(--shadow-sm);
+    }
+    .stat-box .title {
+      font-size: 0.72rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      color: #777;
+    }
+    .stat-box .count {
+      font-size: 2rem;
+      font-weight: 900;
+      color: var(--primary-dark);
+      margin-top: 4px;
+    }
+    .admin-table-card {
+      background: #fff;
+      border-radius: 20px;
+      border: 1px solid var(--border-light);
+      box-shadow: var(--shadow-sm);
+      overflow-x: auto;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.85rem;
+    }
+    th {
+      background: var(--primary-dark);
+      color: #fff;
+      padding: 14px 16px;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    td {
+      padding: 14px 16px;
+      border-bottom: 1px solid #ECEEEF;
+    }
+    tr:hover { background-color: var(--bg-soft); }
+    .status-select {
+      padding: 6px 10px;
+      border-radius: 8px;
+      font-size: 0.75rem;
+      font-weight: 800;
+      border: 1px solid #ccc;
+      outline: none;
+      background: #fff;
+    }
+    .search-filter-bar {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Bar -->
+  <div class="admin-top-bar">
+    <div class="container" style="display: flex; justify-content: space-between; align-items: center;">
+      <div style="display: flex; align-items: center; gap: 14px;">
+        <div style="background: #fff; padding: 4px 10px; border-radius: 8px;">
+          <img src="assets/it-hub-logo.png" alt="IT HUB" style="height: 30px;">
+        </div>
+        <div>
+          <div style="font-size: 0.75rem; font-weight: 900; color: var(--accent-yellow);">ADMINISTRATION CONSOLE</div>
+          <div style="font-size: 0.8rem; color: rgba(255,255,255,0.8);">Next Gen Smart Skills For Youth • Admissions Desk</div>
+        </div>
+      </div>
+      <div>
+        <button id="exportCsvBtn" class="btn btn-yellow" style="padding: 8px 16px; font-size: 0.78rem;">Export CSV</button>
+        <a href="index.html" class="btn btn-outline" style="padding: 8px 16px; font-size: 0.78rem; margin-left: 8px;">View Website</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="container" style="padding-top: 30px; padding-bottom: 60px;">
+    
+    <!-- Metric Cards -->
+    <div class="stats-card-grid">
+      <div class="stat-box">
+        <div class="title">Total Applications</div>
+        <div class="count" id="statTotal">0</div>
+      </div>
+      <div class="stat-box" style="border-left: 4px solid #3B82F6;">
+        <div class="title">Pending</div>
+        <div class="count" id="statPending" style="color: #2563EB;">0</div>
+      </div>
+      <div class="stat-box" style="border-left: 4px solid #F59E0B;">
+        <div class="title">Under Review</div>
+        <div class="count" id="statReview" style="color: #D97706;">0</div>
+      </div>
+      <div class="stat-box" style="border-left: 4px solid #10B981;">
+        <div class="title">Selected</div>
+        <div class="count" id="statSelected" style="color: #059669;">0</div>
+      </div>
+      <div class="stat-box" style="border-left: 4px solid #8B5CF6;">
+        <div class="title">Waitlisted</div>
+        <div class="count" id="statWaitlisted" style="color: #7C3AED;">0</div>
+      </div>
+    </div>
+
+    <!-- Search & Filter Controls -->
+    <div class="search-filter-bar">
+      <input type="text" id="adminSearchInput" class="form-control" placeholder="Search by Applicant Name, ID, Phone, City..." style="max-width: 400px;">
+      <select id="adminStatusFilter" class="form-control" style="max-width: 200px;">
+        <option value="All">All Statuses</option>
+        <option value="Application Received">Application Received</option>
+        <option value="Under Review">Under Review</option>
+        <option value="Selected">Selected</option>
+        <option value="Waitlisted">Waitlisted</option>
+        <option value="Rejected">Rejected</option>
+      </select>
+    </div>
+
+    <!-- Table -->
+    <div class="admin-table-card">
+      <table>
+        <thead>
+          <tr>
+            <th>Application ID</th>
+            <th>Full Name</th>
+            <th>Phone</th>
+            <th>Education</th>
+            <th>City</th>
+            <th>Status</th>
+            <th>Applied Date</th>
+          </tr>
+        </thead>
+        <tbody id="adminTableBody">
+          <!-- Populated by JS -->
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+
+  <script>
+    const STORAGE_KEY = 'ngss_shopify_applications';
+    function loadApps() {
+      try {
+        return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+      } catch {
+        return [];
+      }
+    }
+
+    function render() {
+      const apps = loadApps();
+      const q = document.getElementById('adminSearchInput').value.toLowerCase();
+      const filter = document.getElementById('adminStatusFilter').value;
+
+      // Stats
+      document.getElementById('statTotal').textContent = apps.length;
+      document.getElementById('statPending').textContent = apps.filter(a => a.status === 'Application Received').length;
+      document.getElementById('statReview').textContent = apps.filter(a => a.status === 'Under Review').length;
+      document.getElementById('statSelected').textContent = apps.filter(a => a.status === 'Selected').length;
+      document.getElementById('statWaitlisted').textContent = apps.filter(a => a.status === 'Waitlisted').length;
+
+      // Filtered
+      const filtered = apps.filter(a => {
+        const matchesQ = a.fullName.toLowerCase().includes(q) || a.id.toLowerCase().includes(q) || a.phone.includes(q);
+        const matchesF = filter === 'All' || a.status === filter;
+        return matchesQ && matchesF;
+      });
+
+      const tbody = document.getElementById('adminTableBody');
+      tbody.innerHTML = '';
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 40px; color: #888;">No applications found.</td></tr>';
+        return;
+      }
+
+      filtered.forEach(app => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td style="font-family: monospace; font-weight: 800; color: var(--primary-deep);">${app.id}</td>
+          <td style="font-weight: 700;">${app.fullName}</td>
+          <td>${app.phone}</td>
+          <td>${app.education || 'N/A'}</td>
+          <td>${app.city || 'Mardan'}</td>
+          <td>
+            <select class="status-select" data-id="${app.id}">
+              <option value="Application Received" ${app.status === 'Application Received' ? 'selected' : ''}>Application Received</option>
+              <option value="Under Review" ${app.status === 'Under Review' ? 'selected' : ''}>Under Review</option>
+              <option value="Selected" ${app.status === 'Selected' ? 'selected' : ''}>Selected</option>
+              <option value="Waitlisted" ${app.status === 'Waitlisted' ? 'selected' : ''}>Waitlisted</option>
+              <option value="Rejected" ${app.status === 'Rejected' ? 'selected' : ''}>Rejected</option>
+            </select>
+          </td>
+          <td style="color: #777;">${new Date(app.createdAt).toLocaleDateString()}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      // Bind status changes
+      document.querySelectorAll('.status-select').forEach(sel => {
+        sel.addEventListener('change', (e) => {
+          const id = e.target.getAttribute('data-id');
+          const newStatus = e.target.value;
+          const all = loadApps();
+          const target = all.find(x => x.id === id);
+          if (target) {
+            target.status = newStatus;
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(all));
+            render();
+          }
+        });
+      });
+    }
+
+    document.getElementById('adminSearchInput').addEventListener('input', render);
+    document.getElementById('adminStatusFilter').addEventListener('change', render);
+
+    document.getElementById('exportCsvBtn').addEventListener('click', () => {
+      const apps = loadApps();
+      const headers = ['Application ID,Full Name,Father Name,CNIC,Phone,Email,Age,Education,City,Occupation,Status,Created At'];
+      const rows = apps.map(a =>
+        `"${a.id}","${a.fullName}","${a.fatherName}","${a.cnic}","${a.phone}","${a.email || ''}","${a.age || ''}","${a.education || ''}","${a.city || ''}","${a.occupation || ''}","${a.status}","${a.createdAt}"`
+      );
+      const csv = 'data:text/csv;charset=utf-8,' + [headers, ...rows].join('\n');
+      const link = document.createElement('a');
+      link.setAttribute('href', encodeURI(csv));
+      link.setAttribute('download', 'NGSS_Shopify_Applications.csv');
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    });
+
+    render();
+  </script>
+</body>
+</html>
